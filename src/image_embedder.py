@@ -1,18 +1,16 @@
-from transformers import AutoImageProcessor, FlaxResNetModel, ResNetConfig
+from transformers import AutoImageProcessor,  ViTHybridModel
 import torch
 from PIL import Image
+import numpy as np
 
-config = ResNetConfig(out_features=["stage2"])
 processor = AutoImageProcessor.from_pretrained(
-    "microsoft/resnet-50")
-model = FlaxResNetModel.from_pretrained(
-    "microsoft/resnet-50", config=config, ignore_mismatched_sizes=True)
+    "google/vit-hybrid-base-bit-384")
+model = ViTHybridModel.from_pretrained(
+    "google/vit-hybrid-base-bit-384")
 
 
-def embed_image(image: Image):
-    inputs = processor(image, return_tensors="np")
-    print(model)
+def embed_image(image: Image) -> np.array:
+    inputs = processor(image, return_tensors="pt")
     with torch.no_grad():
         embeddings = model(**inputs)
-    print(embeddings)
-    return embeddings
+    return embeddings.pooler_output.squeeze().cpu().detach().numpy().tolist()
